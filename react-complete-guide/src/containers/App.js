@@ -1,17 +1,41 @@
 import React, { Component } from "react";
-import Person from "../components/Persons/Person/Person";
-import stylesheet from "./App.css";
+import Persons from "../components/Persons/Persons";
 import ErrorBoundary from "../components/ErrorBoundary/ErrorBoundary";
+import stylesheet from "./App.css";
+import Cockpit from "../components/Cockpit/Cockpit";
 
 class App extends Component {
-  state = {
-    persons: [
-      { id: "qwer1", name: "Vrajesh", age: 21 },
-      { id: "asdf2", name: "Adya", age: 20 },
-      { id: "zxcv3", name: "Anurag", age: 22 }
-    ],
-    showPersons: false
-  };
+  constructor(props) {
+    super(props);
+    console.log("[App.js] constructor");
+    this.state = {
+      persons: [
+        { id: "qwer1", name: "Vrajesh", age: 21 },
+        { id: "asdf2", name: "Adya", age: 20 },
+        { id: "zxcv3", name: "Anurag", age: 22 }
+      ],
+      showPersons: false,
+      showCockpit: true
+    };
+  }
+
+  static getDerivedStateFromProps(props, state) {
+    console.log("[App.js] getDerivedStateFromProps", props);
+    return state;
+  }
+
+  componentDidMount() {
+    console.log("[App.js] componentDidMount");
+  }
+
+  componentDidUpdate() {
+    console.log("[App.js] componentDidUpdate");
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    console.log("[App.js] shouldComponentUpdate");
+    return true;
+  }
 
   switchNameHandler = newName => {
     this.setState({
@@ -25,15 +49,16 @@ class App extends Component {
 
   nameChangedHandler = (event, id) => {
     const personIndex = this.state.persons.findIndex(p => {
-      return p.userid === id;
+      return p.id === id;
     });
+    const person = {
+      ...this.state.persons[personIndex]
+    };
 
-    const person = { ...this.state.persons[personIndex] };
     person.name = event.target.value;
 
     const persons = [...this.state.persons];
     persons[personIndex] = person;
-
     this.setState({ persons: persons });
   };
 
@@ -50,55 +75,39 @@ class App extends Component {
   };
 
   render() {
-    // const style = {
-    //   backgroundColor: "green",
-    //   color: "white",
-    //   font: "inherit",
-    //   border: "1px solid",
-    //   borderRadius: 5,
-    //   padding: 8,
-    //   cursor: "pointer"
-    // };
-
+    console.log("[App.js] render");
     let persons = null;
-    let btnClass = "";
 
     if (this.state.showPersons) {
-      // style.backgroundColor = "red";
-      btnClass = stylesheet.Red;
       persons = (
         <div>
-          {this.state.persons.map((person, index) => {
-            return (
-              <ErrorBoundary key={person.id}>
-                <Person
-                  click={() => this.deletePersonHandler(index)}
-                  name={person.name}
-                  age={person.age}
-                  changed={event => this.nameChangedHandler(event, person.id)}
-                />
-              </ErrorBoundary>
-            );
-          })}
+          <Persons
+            persons={this.state.persons}
+            clicked={this.deletePersonHandler}
+            changed={this.nameChangedHandler}
+          />
         </div>
       );
     }
-    const classes = [];
 
-    if (this.state.persons.length <= 2) {
-      classes.push(stylesheet.Red);
-    }
-    if (this.state.persons.length <= 1) {
-      classes.push(stylesheet.Bold);
-    }
     return (
       <div className={stylesheet.App}>
-        <h1>Hi , I'm a React App</h1>
-        <p className={classes.join(" ")}>This is Really Working!</p>
-        <button className={btnClass} onClick={this.togglePersonHandler}>
-          Toggle Persons
-        </button>
-        {persons}
+        <ErrorBoundary>
+          <button
+            onClick={() => {
+              this.setState({ showCockpit: false });
+            }}
+          >
+            Destroy Cockpit
+          </button>
+          {this.state.showCockpit ? <Cockpit
+            title={this.props.appTitle}
+            showPersons={this.state.showPersons}
+            personsLength={this.state.persons.length}
+            clicked={this.togglePersonHandler}
+          /> : null}
+          {persons}
+        </ErrorBoundary>
       </div>
     );
   }
